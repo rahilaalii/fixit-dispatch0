@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Provider = require('../models/Provider');
 const Job = require('../models/Job');
 const asyncHandler = require('../utils/asyncHandler');
+const escapeRegex = require('../utils/escapeRegex');
 
 const populateProvider = (q) => q.populate('user', 'name phone email').populate('categories', 'name');
 
@@ -9,7 +10,7 @@ const populateProvider = (q) => q.populate('user', 'name phone email').populate(
 exports.list = asyncHandler(async (req, res) => {
   const filter = {};
   if (req.query.category) filter.categories = req.query.category;
-  if (req.query.area) filter.areas = new RegExp(`^${req.query.area}$`, 'i');
+  if (req.query.area) filter.areas = new RegExp(`^${escapeRegex(req.query.area)}$`, 'i');
   if (req.user.role !== 'admin') filter.isAvailable = true;
   const providers = await populateProvider(Provider.find(filter).sort({ ratingAvg: -1 }));
   res.json({ success: true, count: providers.length, providers });

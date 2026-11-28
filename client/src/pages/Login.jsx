@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { msg } from "../api";
 import { home } from "../components/Layout";
+import { Notice, btn, inputCls } from "../components/ui";
+import PasswordInput from "../components/PasswordInput";
 
 export default function Login() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
+  const from = useLocation().state?.from; // page the visitor wanted before logging in
 
   // Form values
   const [email, setEmail] = useState("");
@@ -18,8 +21,8 @@ export default function Login() {
 
   // When the user becomes available, send them to their own home page
   useEffect(() => {
-    if (user) navigate(home(user.role), { replace: true });
-  }, [user, navigate]);
+    if (user) navigate(from && user.role === "customer" ? from : home(user.role), { replace: true });
+  }, [user, navigate, from]);
 
   async function handleSubmit(e) {
     e.preventDefault(); // stop the page from reloading
@@ -35,51 +38,43 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-sm bg-white rounded-xl shadow p-6 space-y-4"
-      >
-        <h1 className="text-2xl font-bold text-center">FixIt Dispatch</h1>
-        <p className="text-center text-gray-500 text-sm">Login to your account</p>
-
-        {error && (
-          <div className="bg-red-100 text-red-700 text-sm rounded p-2">{error}</div>
-        )}
-
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="w-full border rounded p-2"
-        />
-
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="w-full border rounded p-2"
-        />
-
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-full bg-blue-600 text-white rounded p-2 disabled:opacity-50"
-        >
-          {busy ? "Logging in..." : "Login"}
-        </button>
-
-        <p className="text-center text-sm">
-          No account?{" "}
-          <Link to="/register" className="text-blue-600 underline">
-            Register
-          </Link>
+    <div className="min-h-screen grid md:grid-cols-2">
+      <div className="hidden md:flex flex-col justify-center bg-blue-800 text-white p-12">
+        <h1 className="text-4xl font-bold leading-tight">Fix problems faster.</h1>
+        <p className="mt-4 text-blue-100 max-w-md">
+          FixIt Dispatch matches your problem with the right plumber, electrician or technician, and puts urgent jobs first.
         </p>
-      </form>
+        <ul className="mt-8 space-y-2 text-blue-100 text-sm">
+          <li>&#10003; Automatic urgency detection</li>
+          <li>&#10003; No double booking</li>
+          <li>&#10003; Best rated providers first</li>
+        </ul>
+      </div>
+
+      <div className="flex items-center justify-center bg-slate-50 p-6">
+        <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white rounded-2xl border border-slate-200 p-8 space-y-4">
+          <div>
+            <h2 className="text-2xl font-bold">Welcome back</h2>
+            <p className="text-slate-500 text-sm">Log in to your account</p>
+          </div>
+
+          {error && <Notice>{error}</Notice>}
+
+          <input type="email" placeholder="Email" value={email}
+            onChange={(e) => setEmail(e.target.value)} required className={inputCls} />
+          <PasswordInput placeholder="Password" value={password}
+            onChange={(e) => setPassword(e.target.value)} required />
+
+          <button type="submit" disabled={busy} className={`${btn.primary} w-full py-2.5`}>
+            {busy ? "Logging in..." : "Log in"}
+          </button>
+
+          <p className="text-center text-sm text-slate-500">
+            No account?{" "}
+            <Link to="/register" state={{ from }} className="text-blue-700 font-medium">Register</Link>
+          </p>
+        </form>
+      </div>
     </div>
   );
 }

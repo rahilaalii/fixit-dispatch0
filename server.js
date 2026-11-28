@@ -12,6 +12,7 @@ app.use(express.json()); // lets us read JSON from req.body
 
 app.get('/', (req, res) => res.json({ success: true, message: 'FixIt Dispatch API is running' }));
 
+app.use('/api/public', require('./routes/publicRoutes')); // no login needed
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/categories', require('./routes/categoryRoutes'));
 app.use('/api/providers', require('./routes/providerRoutes'));

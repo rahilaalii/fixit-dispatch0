@@ -1,26 +1,24 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { msg } from "../api";
 import { home } from "../components/Layout";
+import { Notice, btn, inputCls } from "../components/ui";
+import PasswordInput from "../components/PasswordInput";
 
 export default function Register() {
   const { user, register } = useAuth();
   const navigate = useNavigate();
+  const from = useLocation().state?.from; // page the visitor wanted before logging in
 
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    password: "",
-  });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
   // Redirect after successful registration
   useEffect(() => {
-    if (user) navigate(home(user.role), { replace: true });
-  }, [user, navigate]);
+    if (user) navigate(from && user.role === "customer" ? from : home(user.role), { replace: true });
+  }, [user, navigate, from]);
 
   // One handler for all inputs, based on the input's "name"
   function handleChange(e) {
@@ -40,37 +38,29 @@ export default function Register() {
     }
   }
 
-  const input = "w-full border rounded p-2";
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-sm bg-white rounded-xl shadow p-6 space-y-4"
-      >
-        <h1 className="text-2xl font-bold text-center">Create account</h1>
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
+      <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white rounded-2xl border border-slate-200 p-8 space-y-4">
+        <div>
+          <h2 className="text-2xl font-bold">Create your account</h2>
+          <p className="text-slate-500 text-sm">Book trusted service providers</p>
+        </div>
 
-        {error && (
-          <div className="bg-red-100 text-red-700 text-sm rounded p-2">{error}</div>
-        )}
+        {error && <Notice>{error}</Notice>}
 
-        <input name="name" placeholder="Full name" value={form.name}
-          onChange={handleChange} required className={input} />
-        <input name="email" type="email" placeholder="Email" value={form.email}
-          onChange={handleChange} required className={input} />
-        <input name="phone" placeholder="Phone (e.g. 923001234567)" value={form.phone}
-          onChange={handleChange} required className={input} />
-        <input name="password" type="password" placeholder="Password" value={form.password}
-          onChange={handleChange} required minLength={6} className={input} />
+        <input name="name" placeholder="Full name" value={form.name} onChange={handleChange} required className={inputCls} />
+        <input name="email" type="email" placeholder="Email" value={form.email} onChange={handleChange} required className={inputCls} />
+        <input name="phone" placeholder="Phone (e.g. 923001234567)" value={form.phone} onChange={handleChange} required className={inputCls} />
+        <PasswordInput name="password" placeholder="Password (min 6 characters)" value={form.password}
+          onChange={handleChange} required minLength={6} />
 
-        <button type="submit" disabled={busy}
-          className="w-full bg-blue-600 text-white rounded p-2 disabled:opacity-50">
+        <button type="submit" disabled={busy} className={`${btn.primary} w-full py-2.5`}>
           {busy ? "Creating..." : "Register"}
         </button>
 
-        <p className="text-center text-sm">
+        <p className="text-center text-sm text-slate-500">
           Already have an account?{" "}
-          <Link to="/login" className="text-blue-600 underline">Login</Link>
+          <Link to="/login" state={{ from }} className="text-blue-700 font-medium">Log in</Link>
         </p>
       </form>
     </div>
